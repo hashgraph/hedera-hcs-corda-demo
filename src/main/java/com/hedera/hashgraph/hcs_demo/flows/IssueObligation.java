@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.corda_hcs.flows;
+package com.hedera.hashgraph.hcs_demo.flows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -21,9 +21,9 @@ import net.corda.core.transactions.SignedTransaction;
 import net.corda.core.transactions.TransactionBuilder;
 import net.corda.core.utilities.ProgressTracker;
 import net.corda.core.utilities.ProgressTracker.Step;
-import com.hedera.hashgraph.corda_hcs.Obligation;
-import com.hedera.hashgraph.corda_hcs.ObligationContract;
-import com.hedera.hashgraph.corda_hcs.flows.ObligationBaseFlow.SignTxFlowNoChecking;
+import com.hedera.hashgraph.hcs_demo.Obligation;
+import com.hedera.hashgraph.hcs_demo.ObligationContract;
+import com.hedera.hashgraph.hcs_demo.flows.ObligationBaseFlow.SignTxFlowNoChecking;
 
 import java.security.PublicKey;
 import java.time.Duration;

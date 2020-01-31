@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.corda_hcs;
+package com.hedera.hashgraph.hcs_demo;
 
 import com.google.common.collect.ImmutableList;
 

@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.corda_hcs.notary;
+package com.hedera.hashgraph.hcs_demo.notary;
 
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.HederaStatusException;
@@ -17,7 +17,6 @@ import net.corda.core.crypto.SecureHash;
 import net.corda.core.crypto.SignableData;
 import net.corda.core.crypto.SignatureMetadata;
 import net.corda.core.crypto.TransactionSignature;
-import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.flows.FlowSession;
 import net.corda.core.flows.NotaryError;
@@ -68,7 +67,7 @@ public class HcsNotaryService extends NotaryService {
                 "302e020100300506032b657004220420bffc5bc38cae07f381a5d5baa24086eb189b6f59f407ed87d7e3010814359843"
             ));
 
-        mirrorClient = new MirrorClient("<FILL THIS OUT>");
+        mirrorClient = new MirrorClient("api.testnet.kabuto.sh:50211");
     }
 
     @NotNull
@@ -91,14 +90,12 @@ public class HcsNotaryService extends NotaryService {
         return new HcsNotaryServiceFlow(this, otherPartySession);
     }
 
-    long getSequenceNumber() {
-        return sequenceNumber;
-    }
-
     long submitTransactionSpends(CoreTransaction transaction) throws HederaStatusException {
         return new ConsensusMessageSubmitTransaction()
                 .setTopicId(topicId)
                 .setMessage(new SerializeTransaction(transaction).serialize())
+                .build(sdkClient)
+                .sign(submitKey)
                 .execute(sdkClient)
                 .getReceipt(sdkClient)
                 .getConsensusTopicSequenceNumber();
@@ -143,9 +140,13 @@ public class HcsNotaryService extends NotaryService {
 
 
     private void onMessage(MirrorConsensusTopicResponse msg) {
-        sequenceNumber = msg.sequenceNumber;
         SerializeTransaction txn = SerializeTransaction.deserialize(msg.message);
 
+        for (StateRef input : txn.inputs) {
+            stateDestructions.computeIfAbsent(input, key -> new StateDestruction(txn.txnId, msg.sequenceNumber));
+        }
+
+        sequenceNumber = msg.sequenceNumber;
     }
 
     @Override

@@ -8,7 +8,7 @@ buildscript {
         corda_gradle_plugins_version = '5.0.4'
         quasar_version = '0.7.10'
         corda_platform_version = '5'
-        corda_release_version = '4.1'
+        corda_release_version = '4.3'
     }
 
     repositories {
@@ -58,35 +58,25 @@ cordapp {
         licence "Apache License, Version 2.0"
         versionId 1
     }
-    signing {
-        enabled false
-    }
 }
 
 dependencies {
-    compile("net.corda:corda-node:$corda_release_version") {
-        exclude group: 'net.corda', module: 'corda-tools-cliutils'
-        exclude group: 'net.corda', module: 'corda-shell'
-        exclude group: 'net.corda', module: 'corda-common-logging'
-        exclude group: 'com.github.bft-smart'
-        exclude group: 'com.palominolabs.metrics'
-    }
-
     compile("com.hedera.hashgraph:sdk:1.1.1") {
-        exclude group: 'org.bouncycastle'
+        // exclude group: 'org.bouncycastle'
         exclude group: 'io.github.novacrypto'
     }
 
     compile("io.grpc:grpc-okhttp:1.26.0")
 
     // Corda dependencies.
+    compileOnly "net.corda:corda-node:$corda_release_version"
+
     cordaCompile "net.corda:corda-core:$corda_release_version"
     cordaCompile "net.corda:corda-jackson:$corda_release_version"
     cordaCompile "net.corda:corda-rpc:$corda_release_version"
-    cordaRuntime "net.corda:corda:$corda_release_version"
+    cordaCompile "net.corda:corda-node-api:$corda_release_version"
 
     cordaRuntime "net.corda:corda:$corda_release_version"
-    cordaRuntime "net.corda:corda-webserver:$corda_release_version"
 
 
     // CorDapp dependencies.
@@ -106,7 +96,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         name "O=Notary,L=London,C=GB"
         notary = [
             validating: false,
-            className: "com.hedera.hashgraph.corda_hcs.HcsNotaryService"
+            className: "com.hedera.hashgraph.hcs_demo.notary.HcsNotaryService"
         ]
 
         p2pPort 10002
@@ -114,10 +104,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             address("localhost:10003")
             adminAddress("localhost:10043")
         }
-        projectCordapp {
-            deploy = false
-        }
-        cordapps.clear()
+
+        cordapps = []
     }
     node {
         name "O=PartyA,L=London,C=GB"
@@ -126,7 +114,6 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             address("localhost:10006")
             adminAddress("localhost:10046")
         }
-        webPort 10007
     }
     node {
         name "O=PartyB,L=New York,C=US"
@@ -135,7 +122,6 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             address("localhost:10009")
             adminAddress("localhost:10049")
         }
-        webPort 10010
     }
     node {
         name "O=PartyC,L=Paris,C=FR"
@@ -144,6 +130,5 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
             address("localhost:10012")
             adminAddress("localhost:10052")
         }
-        webPort 10013
     }
 }

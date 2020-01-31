@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.corda_hcs.notary;
+package com.hedera.hashgraph.hcs_demo.notary;
 
 import net.corda.core.crypto.SecureHash;
 

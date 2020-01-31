@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.corda_hcs.notary;
+package com.hedera.hashgraph.hcs_demo.notary;
 
 import net.corda.core.contracts.StateRef;
 import net.corda.core.crypto.SecureHash;
@@ -9,23 +9,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SerializeTransaction {
+    public final SecureHash txnId;
     public final List<StateRef> inputs;
     public final List<StateRef> refs;
 
     public SerializeTransaction(CoreTransaction txn) {
+        this.txnId = txn.getId();
         this.inputs = txn.getInputs();
         this.refs = txn.getReferences();
     }
 
-    public SerializeTransaction(List<StateRef> inputs, List<StateRef> refs) {
+    public SerializeTransaction(SecureHash txnId, List<StateRef> inputs, List<StateRef> refs) {
+        this.txnId = txnId;
         this.inputs = inputs;
         this.refs = refs;
     }
 
     public byte[] serialize() {
-        int capacity = 8 + inputs.size() * 96 + refs.size() * 96;
+        int capacity = 32 + 8 + inputs.size() * 96 + refs.size() * 96;
 
         ByteBuffer out = ByteBuffer.allocateDirect(capacity);
+        txnId.putTo(out);
         out.putInt(inputs.size());
         out.putInt(refs.size());
 
@@ -44,6 +48,11 @@ public class SerializeTransaction {
 
     public static SerializeTransaction deserialize(byte[] data) {
         ByteBuffer in = ByteBuffer.wrap(data).asReadOnlyBuffer();
+
+        byte[] txnIdBytes = new byte[32];
+        in.get(txnIdBytes);
+
+        SecureHash txnId = new SecureHash.SHA256(txnIdBytes);
 
         int inputsLen = in.getInt();
         int refsLen = in.getInt();
@@ -67,6 +76,6 @@ public class SerializeTransaction {
             refs.add(new StateRef(new SecureHash.SHA256(hash), index));
         }
 
-        return new SerializeTransaction(inputs, refs);
+        return new SerializeTransaction(txnId, inputs, refs);
     }
 }

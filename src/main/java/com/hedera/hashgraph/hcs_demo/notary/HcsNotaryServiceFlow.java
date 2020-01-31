@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.corda_hcs.notary;
+package com.hedera.hashgraph.hcs_demo.notary;
 
 import com.hedera.hashgraph.sdk.HederaStatusException;
 
