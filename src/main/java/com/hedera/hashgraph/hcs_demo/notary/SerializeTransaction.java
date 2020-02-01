@@ -28,7 +28,10 @@ public class SerializeTransaction {
     public byte[] serialize() {
         int capacity = 32 + 8 + inputs.size() * 96 + refs.size() * 96;
 
-        ByteBuffer out = ByteBuffer.allocateDirect(capacity);
+        ByteBuffer out = ByteBuffer.allocate(capacity);
+
+        System.out.println("allocated buffer with " + capacity + " bytes");
+
         txnId.putTo(out);
         out.putInt(inputs.size());
         out.putInt(refs.size());
@@ -38,10 +41,14 @@ public class SerializeTransaction {
             out.putInt(input.getIndex());
         }
 
+        System.out.println("serialized inputs");
+
         for (StateRef ref : refs) {
             out.put(ref.getTxhash().copyBytes());
             out.putInt(ref.getIndex());
         }
+
+        System.out.println("serialized outputs");
 
         return out.array();
     }
@@ -77,5 +84,14 @@ public class SerializeTransaction {
         }
 
         return new SerializeTransaction(txnId, inputs, refs);
+    }
+
+    @Override
+    public String toString() {
+        return "SerializeTransaction{" +
+                "txnId=" + txnId +
+                ", inputs=" + inputs +
+                ", refs=" + refs +
+                '}';
     }
 }

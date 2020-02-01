@@ -2,10 +2,11 @@ package com.hedera.hashgraph.hcs_demo.notary;
 
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.HederaStatusException;
+import com.hedera.hashgraph.sdk.Transaction;
+import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.account.AccountId;
 import com.hedera.hashgraph.sdk.consensus.ConsensusMessageSubmitTransaction;
 import com.hedera.hashgraph.sdk.consensus.ConsensusTopicId;
-import com.hedera.hashgraph.sdk.crypto.ed25519.Ed25519PrivateKey;
 import com.hedera.hashgraph.sdk.mirror.MirrorClient;
 import com.hedera.hashgraph.sdk.mirror.MirrorConsensusTopicQuery;
 import com.hedera.hashgraph.sdk.mirror.MirrorConsensusTopicResponse;
@@ -32,13 +33,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.security.PublicKey;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nullable;
 
 public class HcsNotaryService extends NotaryService {
-
     private final ServiceHubInternal serviceHubInternal;
     private final PublicKey publicKey;
     private final NotaryConfig notaryConfig;
@@ -47,7 +48,6 @@ public class HcsNotaryService extends NotaryService {
     private final MirrorClient mirrorClient;
 
     private static final ConsensusTopicId topicId = new ConsensusTopicId(157699);
-    private static final Ed25519PrivateKey submitKey = Ed25519PrivateKey.fromString("302e020100300506032b657004220420bb92449a88df33967ae785f502c2a1853db99c10ebb3955fa94c022d9f53ccf4");
 
     private final ConcurrentHashMap<StateRef, StateDestruction> stateDestructions = new ConcurrentHashMap<>();
 
@@ -63,9 +63,10 @@ public class HcsNotaryService extends NotaryService {
         this.notaryConfig = serviceHubInternal.getConfiguration().getNotary();
 
         sdkClient = Client.forTestnet()
-            .setOperator(new AccountId(147704), Ed25519PrivateKey.fromString(
-                "302e020100300506032b657004220420bffc5bc38cae07f381a5d5baa24086eb189b6f59f407ed87d7e3010814359843"
-            ));
+            .setOperatorWith(
+                    new AccountId(147704),
+                    SigningUtils.publicKey,
+                    message -> SigningUtils.sign(SigningUtils.privateKeyBytes, message));
 
         mirrorClient = new MirrorClient("api.testnet.kabuto.sh:50211");
     }
@@ -91,18 +92,33 @@ public class HcsNotaryService extends NotaryService {
     }
 
     long submitTransactionSpends(CoreTransaction transaction) throws HederaStatusException {
-        return new ConsensusMessageSubmitTransaction()
-                .setTopicId(topicId)
-                .setMessage(new SerializeTransaction(transaction).serialize())
-                .build(sdkClient)
-                .sign(submitKey)
-                .execute(sdkClient)
-                .getReceipt(sdkClient)
+        System.out.println("submitting transaction spends");
+
+        ConsensusMessageSubmitTransaction msgTxn = new ConsensusMessageSubmitTransaction()
+                .setTopicId(topicId);
+
+        System.out.println("serializing corda transaction");
+
+        msgTxn.setMessage(new SerializeTransaction(transaction).serialize());
+
+        System.out.println("building transaction");
+
+        Transaction hederaTxn = msgTxn.build(sdkClient);
+
+        System.out.println("submitting transaction to Hedera");
+
+        TransactionId txnId = hederaTxn
+                .signWith(SigningUtils.submitPublicKey, m -> SigningUtils.sign(SigningUtils.submitKeyBytes, m))
+                .execute(sdkClient);
+
+        System.out.println("transaction ID" + txnId);
+
+        return txnId.getReceipt(sdkClient)
                 .getConsensusTopicSequenceNumber();
     }
 
     boolean checkTransaction(CoreTransaction txn, long sequenceNumber) throws NotaryException {
-        if (sequenceNumber > this.sequenceNumber) {
+        if (this.sequenceNumber < sequenceNumber) {
             return false;
         }
 
@@ -140,7 +156,11 @@ public class HcsNotaryService extends NotaryService {
 
 
     private void onMessage(MirrorConsensusTopicResponse msg) {
+        System.out.println("received consensus message " + msg);
+
         SerializeTransaction txn = SerializeTransaction.deserialize(msg.message);
+
+        System.out.println("received transaction " + txn);
 
         for (StateRef input : txn.inputs) {
             stateDestructions.computeIfAbsent(input, key -> new StateDestruction(txn.txnId, msg.sequenceNumber));
@@ -153,6 +173,9 @@ public class HcsNotaryService extends NotaryService {
     public void start() {
         subscriptionHandle = new MirrorConsensusTopicQuery()
                 .setTopicId(topicId)
+                // I used the Java SDK example to initially create the topic and it sent a few
+                // messages we're not expecting; this should prevent us from seeing those
+                .setStartTime(Instant.ofEpochSecond(1580504113))
                 .subscribe(
                         mirrorClient,
                         this::onMessage,
