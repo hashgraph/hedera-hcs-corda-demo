@@ -47,7 +47,7 @@ public class HcsNotaryService extends NotaryService {
     private final Client sdkClient;
     private final MirrorClient mirrorClient;
 
-    private static final ConsensusTopicId topicId = new ConsensusTopicId(157699);
+    private static final ConsensusTopicId topicId = new ConsensusTopicId(161427);
 
     private final ConcurrentHashMap<StateRef, StateDestruction> stateDestructions = new ConcurrentHashMap<>();
 
@@ -127,7 +127,7 @@ public class HcsNotaryService extends NotaryService {
         for (StateRef input : txn.getInputs()) {
             StateDestruction destruction = stateDestructions.get(input);
 
-            if (destruction != null) {
+            if (destruction != null && !destruction.txnId.equals(txn.getId())) {
                 consumedStates.put(input,
                         new StateConsumptionDetails(destruction.txnId, StateConsumptionDetails.ConsumedStateType.INPUT_STATE));
             }
@@ -143,6 +143,7 @@ public class HcsNotaryService extends NotaryService {
         }
 
         if (!consumedStates.isEmpty()) {
+            System.out.println("throwing error, consumed states: " + consumedStates);
             throw new NotaryException(new NotaryError.Conflict(txn.getId(), consumedStates), txn.getId());
         }
 
@@ -163,6 +164,7 @@ public class HcsNotaryService extends NotaryService {
         System.out.println("received transaction " + txn);
 
         for (StateRef input : txn.inputs) {
+            // don't overwrite with duplicate destructions
             stateDestructions.computeIfAbsent(input, key -> new StateDestruction(txn.txnId, msg.sequenceNumber));
         }
 
@@ -173,9 +175,8 @@ public class HcsNotaryService extends NotaryService {
     public void start() {
         subscriptionHandle = new MirrorConsensusTopicQuery()
                 .setTopicId(topicId)
-                // I used the Java SDK example to initially create the topic and it sent a few
-                // messages we're not expecting; this should prevent us from seeing those
-                .setStartTime(Instant.ofEpochSecond(1580504113))
+                // for demo purposes we don't care about any states before the notary started
+                .setStartTime(Instant.now())
                 .subscribe(
                         mirrorClient,
                         this::onMessage,

@@ -25,8 +25,22 @@ public class SerializeTransaction {
         this.refs = refs;
     }
 
+    // SERIALIZED FORMAT:
+    // byte[32] transaction ID
+    // int4 inputsLen
+    // int4 refsLen
+    //
+    // for 0 .. inputsLen:
+    //   byte[32] input transaction ID
+    //   int4 state index
+    //
+    // for 0 .. refsLen:
+    //   byte[32] ref transaction ID
+    //   int4 state index
+
     public byte[] serialize() {
-        int capacity = 32 + 8 + inputs.size() * 96 + refs.size() * 96;
+        // txn ID + lengths + (txn ID + index) * inputsLen + (txn ID + index) * refsLen
+        int capacity = 32 + 8 + inputs.size() * 36 + refs.size() * 36;
 
         ByteBuffer out = ByteBuffer.allocate(capacity);
 
@@ -37,14 +51,14 @@ public class SerializeTransaction {
         out.putInt(refs.size());
 
         for (StateRef input : inputs) {
-            out.put(input.getTxhash().copyBytes());
+            input.getTxhash().putTo(out);
             out.putInt(input.getIndex());
         }
 
         System.out.println("serialized inputs");
 
         for (StateRef ref : refs) {
-            out.put(ref.getTxhash().copyBytes());
+            ref.getTxhash().putTo(out);
             out.putInt(ref.getIndex());
         }
 
@@ -68,22 +82,22 @@ public class SerializeTransaction {
         List<StateRef> refs = new ArrayList<>(refsLen);
 
         for (int i = 0; i < inputsLen; i++) {
-            byte[] hash = new byte[32];
-            in.get(hash);
-            int index = in.getInt();
-
-            inputs.add(new StateRef(new SecureHash.SHA256(hash), index));
+            inputs.add(readStateRef(in));
         }
 
         for (int i = 0; i < refsLen; i++) {
-            byte[] hash = new byte[32];
-            in.get(hash);
-            int index = in.getInt();
-
-            refs.add(new StateRef(new SecureHash.SHA256(hash), index));
+            refs.add(readStateRef(in));
         }
 
         return new SerializeTransaction(txnId, inputs, refs);
+    }
+
+    private static StateRef readStateRef(ByteBuffer in) {
+        byte[] hash = new byte[32];
+        in.get(hash);
+        int index = in.getInt();
+
+        return new StateRef(new SecureHash.SHA256(hash), index);
     }
 
     @Override

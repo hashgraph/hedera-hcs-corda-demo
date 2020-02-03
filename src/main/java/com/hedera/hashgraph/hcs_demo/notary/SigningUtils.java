@@ -12,7 +12,7 @@ public class SigningUtils {
 
     // FIXME (abonander) these are my own testnet account keys
     static final byte[] privateKeyBytes = Hex.decode("bffc5bc38cae07f381a5d5baa24086eb189b6f59f407ed87d7e3010814359843");
-    static final byte[] submitKeyBytes = Hex.decode("bb92449a88df33967ae785f502c2a1853db99c10ebb3955fa94c022d9f53ccf4");
+    static final byte[] submitKeyBytes = Hex.decode("9ae9d9e62f6f31154eb2ea6e4257828ace0575d97c03fa2dbfad7c20f5aa31f9");
 
     private static final byte[] publicKeyBytes = new byte[Ed25519.PUBLIC_KEY_SIZE];
     private static final byte[] submitPublicKeyBytes = new byte[Ed25519.PUBLIC_KEY_SIZE];
