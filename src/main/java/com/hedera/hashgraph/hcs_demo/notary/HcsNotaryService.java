@@ -68,7 +68,7 @@ public class HcsNotaryService extends NotaryService {
                     SigningUtils.publicKey,
                     message -> SigningUtils.sign(SigningUtils.privateKeyBytes, message));
 
-        mirrorClient = new MirrorClient("api.testnet.kabuto.sh:50211");
+        mirrorClient = new MirrorClient("hcs.testnet.mirrornode.hedera.com:5600");
     }
 
     @NotNull
