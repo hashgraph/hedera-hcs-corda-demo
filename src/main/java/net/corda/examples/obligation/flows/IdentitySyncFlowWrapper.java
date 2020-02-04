@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.hcs_demo.flows;
+package net.corda.examples.obligation.flows;
 
 import net.corda.confidential.IdentitySyncFlow;
 import net.corda.core.flows.FlowException;

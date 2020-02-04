@@ -1,7 +1,7 @@
-package com.hedera.hashgraph.hcs_demo.flows;
+package net.corda.examples.obligation.flows;
 
 import com.google.common.collect.ImmutableList;
-import com.hedera.hashgraph.hcs_demo.Obligation;
+import net.corda.examples.obligation.Obligation;
 
 import net.corda.core.contracts.StateAndRef;
 import net.corda.core.contracts.UniqueIdentifier;

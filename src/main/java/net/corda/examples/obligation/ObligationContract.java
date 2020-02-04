@@ -1,4 +1,4 @@
-package com.hedera.hashgraph.hcs_demo;
+package net.corda.examples.obligation;
 
 import com.google.common.collect.Sets;
 
@@ -25,7 +25,7 @@ import static net.corda.core.contracts.Structures.withoutIssuer;
 import static net.corda.finance.contracts.utils.StateSumming.sumCash;
 
 public class ObligationContract implements Contract {
-    public static final String OBLIGATION_CONTRACT_ID = "com.hedera.hashgraph.hcs_demo.ObligationContract";
+    public static final String OBLIGATION_CONTRACT_ID = "net.corda.examples.obligation.ObligationContract";
 
     public interface Commands extends CommandData {
         class Issue extends TypeOnlyCommandData implements Commands {
