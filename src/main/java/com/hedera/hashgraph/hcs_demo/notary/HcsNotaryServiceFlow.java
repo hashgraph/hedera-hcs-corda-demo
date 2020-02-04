@@ -49,6 +49,7 @@ public class HcsNotaryServiceFlow extends FlowLogic<Void> {
             FlowLogic.sleep(Duration.ofSeconds(5));
         }
 
+        System.out.println("notarizing transaction " + txn.getId());
         otherPartySession.send(new NotarisationResponse(Collections.singletonList(notaryService.signTransaction(txn.getId()))));
 
         return null;
