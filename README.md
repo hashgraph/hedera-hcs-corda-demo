@@ -9,7 +9,7 @@ network.
 
 You must have JDK 8 installed and set up (the `JAVA_HOME` environment variable must be set).
 
-##### 1. Clone the repository:
+#### 1. Clone the repository:
 
 Open a terminal in the parent directory where you want to clone the repo. Unless otherwise
 specified, all following code blocks are entered in this terminal window with "Enter" being
@@ -20,14 +20,14 @@ git clone git@github.com:hashgraph/hedera-hcs-corda
 cd hedera-hcs-corda
 ```
 
-##### 2. Build the Nodes
+#### 2. Build the Nodes
 
 This will also remove node data from previous runs (for consistency)
 ```sh
 ./gradlew clean deployNodes
 ```
 
-##### 3. Run the nodes
+#### 3. Run the nodes
 
 ```bash
 ./build/nodes/runnodes
@@ -37,7 +37,7 @@ This will also remove node data from previous runs (for consistency)
 an initialization process that may take a minute or so. You will know when all the nodes are ready
 when you see a `>>>` prompt in each terminal window.
 
-##### 4. Issue some cash to Party A
+#### 4. Issue some cash to Party A
 
 The contract doesn't actually require the lending party to have sufficient balance for a loan
 but for the demo to make sense it's kind of important to show this step anyway.
@@ -57,7 +57,7 @@ demo it would be the name of the bank that recorded the cash deposit.
 `notary` must be "Notary", although notarisation is apparently not required for `CashIssueFlow`
 as it never actually talks to the notary.
 
-##### 5. Party B borrows money from Party A
+#### 5. Party B borrows money from Party A
 
 In the **"Party B"** terminal window, type the following and press "Enter":
 
@@ -80,7 +80,7 @@ service" step you will see activity in the "Notary" terminal window showing it s
 HCS message to Hedera with a sequence number and then receiving back a message with that same
 sequence number.
 
-##### 6. See the obligation in Party B's vault
+#### 6. See the obligation in Party B's vault
 
 In the **"Party B"** terminal window, enter:
 
@@ -96,14 +96,14 @@ Then you want to look for the `linearId:` key and the `id:` key underneath it. C
 (that will look something like this: `"2767ac1e-a8ec-4a1a-a0ab-1bafd4d98df2"`) as you will need
 it in step 8.
 
-##### 7. Issue cash to Party B
+#### 7. Issue cash to Party B
 
 This is the same as **step 4**, except this time we enter the command in the **"Party B"**
 terminal window. Make sure the `amount` is greater than or equal to the balance of our IOU
 (although you can actually make partial payments on IOUs, we won't be doing that for this demo
 as those steps look identical to steps 6 - 8).
 
-##### 8. Repay the IOU
+#### 8. Repay the IOU
 
 In the **"Party B"** terminal window, enter the following:
 
@@ -121,12 +121,12 @@ For `linearId`, paste in the UUID that you got from **step 6**, including the do
 When you enter this command, you will see more activity in the "Notary" terminal window,
 again submitting the transaction to HCS for global ordering before checking for double-spends.
 
-##### 9. See that the obligation is destroyed
+#### 9. See that the obligation is destroyed
 
 In the **"Party B"** terminal window, run the same command as **step 6** again; this time you
 will see a much shorter response with no obligations listed. Our debt has been repaid.
 
-##### 10. Rinse and repeat, or Cleanly shut down the nodes
+#### 10. Rinse and repeat, or Cleanly shut down the nodes
 
 If you wish to repeat the demo, return to **step 4**. 
 
