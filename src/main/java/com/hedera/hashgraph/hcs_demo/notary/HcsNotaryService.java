@@ -48,6 +48,7 @@ public class HcsNotaryService extends NotaryService {
     private final MirrorClient mirrorClient;
 
     private static final ConsensusTopicId topicId = new ConsensusTopicId(161427);
+    private static final AccountId operatorAccountId = new AccountId(147704);
 
     private final ConcurrentHashMap<StateRef, StateDestruction> stateDestructions = new ConcurrentHashMap<>();
 
@@ -64,7 +65,7 @@ public class HcsNotaryService extends NotaryService {
 
         sdkClient = Client.forTestnet()
             .setOperatorWith(
-                    new AccountId(147704),
+                    operatorAccountId,
                     SigningUtils.publicKey,
                     message -> SigningUtils.sign(SigningUtils.privateKeyBytes, message));
 
